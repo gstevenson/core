@@ -8,7 +8,7 @@ from typing import Any
 import voluptuous as vol
 
 from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
-from homeassistant.const import CONF_API_KEY, CONF_HOST
+from homeassistant.const import CONF_API_KEY
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 
@@ -19,19 +19,41 @@ _LOGGER = logging.getLogger(__name__)
 STEP_USER_DATA_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_API_KEY): str,
+        vol.Required("airport_icao_code"): str,
     }
 )
 
 
 class PlaceholderHub:
-    """Placeholder class to make tests pass.
+    """Class to verify correct integration configuration."""
 
-    TODO Remove this placeholder class and replace with things from your PyPI package.
-    """
-
-    def __init__(self, host: str) -> None:
+    def __init__(self) -> None:
         """Initialize."""
-        self.host = host
+
+    async def validateinput(self, data: dict[str, Any]) -> bool:
+        """Validate the user input has the mandatory values."""
+
+        # Get the API key and airport ICAO code from the user input
+        api_key = data[CONF_API_KEY]
+        airport_icao_code = data["airport_icao_code"]
+
+        # Check if API key and airport ICAO code are provided (HA should prevent this from happening anyway)
+        if api_key is None and airport_icao_code is None:
+            return False
+
+        # Check API key is in correct format
+        if len(api_key) != 32:
+            return False
+
+        # Check airport ICAO code is correct length
+        if len(airport_icao_code) != 4:
+            return False
+
+        # Check the airport ICAO code is 4 letters only with no other characters
+        if not airport_icao_code.isalpha():
+            return False
+
+        return True
 
     async def authenticate(self, api_key: str) -> bool:
         """Test if we can authenticate with the host."""
@@ -39,21 +61,21 @@ class PlaceholderHub:
 
 
 async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str, Any]:
-    """Validate the user input allows us to connect.
+    """Validate the user input allows us to connect to the METAR-TAF API.
 
     Data has the keys from STEP_USER_DATA_SCHEMA with values provided by the user.
     """
 
-    # If your PyPI package is not built with async, pass your methods
-    # to the executor:
-    # await hass.async_add_executor_job(
-    #     your_validate_func, data[CONF_USERNAME], data[CONF_PASSWORD]
-    # )
+    hub = PlaceholderHub()
 
-    hub = PlaceholderHub(data[CONF_HOST])
+    if not await hub.validateinput(data):
+        raise InvalidAuth
 
     if not await hub.authenticate(data[CONF_API_KEY]):
         raise InvalidAuth
+
+    # api_key = data[CONF_API_KEY]
+    airport_icao_code = data["airport_icao_code"]
 
     # If you cannot connect:
     # throw CannotConnect
@@ -61,11 +83,11 @@ async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str,
     # InvalidAuth
 
     # Return info that you want to store in the config entry.
-    return {"title": "Name of the device"}
+    return {"title": f"METAR-TAF ({airport_icao_code})"}
 
 
 class MetarTafConfigFlow(ConfigFlow, domain=DOMAIN):
-    """Handle a config flow for METAR-TAF."""
+    """Handle a config flow for the METAR-TAF integration."""
 
     VERSION = 1
 

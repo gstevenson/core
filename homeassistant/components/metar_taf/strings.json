@@ -3,7 +3,11 @@
     "step": {
       "user": {
         "data": {
-          "api_key": "[%key:common::config_flow::data::api_key%]"
+          "api_key": "[%key:common::config_flow::data::api_key%]",
+          "airport_icao_code": "Airport ICAO code"
+        },
+        "data_description": {
+          "airport_icao_code": "The 4-letter ICAO code of the airport (eg. EGNE)."
         }
       }
     },
