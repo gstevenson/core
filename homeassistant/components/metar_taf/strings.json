@@ -14,6 +14,8 @@
     "error": {
       "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]",
       "invalid_auth": "[%key:common::config_flow::error::invalid_auth%]",
+      "api_key_invalid_format": "The METAR-TAF API key is not in the correct format. It should be a 32-character string.",
+      "airport_icao_code_invalid": "The airport ICAO code is invalid. It should be a 4-letter string.",
       "unknown": "[%key:common::config_flow::error::unknown%]"
     },
     "abort": {

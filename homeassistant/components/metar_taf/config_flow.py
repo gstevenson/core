@@ -24,63 +24,37 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
 )
 
 
-class PlaceholderHub:
-    """Class to verify correct integration configuration."""
-
-    def __init__(self) -> None:
-        """Initialize."""
-
-    async def validateinput(self, data: dict[str, Any]) -> bool:
-        """Validate the user input has the mandatory values."""
-
-        # Get the API key and airport ICAO code from the user input
-        api_key = data[CONF_API_KEY]
-        airport_icao_code = data["airport_icao_code"]
-
-        # Check if API key and airport ICAO code are provided (HA should prevent this from happening anyway)
-        if api_key is None and airport_icao_code is None:
-            return False
-
-        # Check API key is in correct format
-        if len(api_key) != 32:
-            return False
-
-        # Check airport ICAO code is correct length
-        if len(airport_icao_code) != 4:
-            return False
-
-        # Check the airport ICAO code is 4 letters only with no other characters
-        if not airport_icao_code.isalpha():
-            return False
-
-        return True
-
-    async def authenticate(self, api_key: str) -> bool:
-        """Test if we can authenticate with the host."""
-        return True
-
-
 async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str, Any]:
     """Validate the user input allows us to connect to the METAR-TAF API.
 
     Data has the keys from STEP_USER_DATA_SCHEMA with values provided by the user.
     """
 
-    hub = PlaceholderHub()
-
-    if not await hub.validateinput(data):
-        raise InvalidAuth
-
-    if not await hub.authenticate(data[CONF_API_KEY]):
-        raise InvalidAuth
-
-    # api_key = data[CONF_API_KEY]
+    # Get the API key and airport ICAO code from the user input
+    api_key = data[CONF_API_KEY]
     airport_icao_code = data["airport_icao_code"]
 
-    # If you cannot connect:
-    # throw CannotConnect
-    # If the authentication is wrong:
-    # InvalidAuth
+    # Check if API key and airport ICAO code are provided (HA should prevent this from happening anyway so we don't bother raising a custom error here)
+    if api_key is None and airport_icao_code is None:
+        raise InvalidAuth
+
+    # Check API key is in correct format
+    if len(api_key) != 32:
+        raise ApiKeyInvalidFormat
+
+    # Check airport ICAO code is correct length
+    if len(airport_icao_code) != 4:
+        raise AirportIcaoCodeInvalid
+
+    # Check the airport ICAO code is 4 letters only with no other characters
+    if not airport_icao_code.isalpha():
+        raise AirportIcaoCodeInvalid
+
+    # Check the API token is actually valid
+    # if 1 == 2:
+    #    raise CannotConnect
+    # if not await hub.authenticate(data[CONF_API_KEY]):
+    #     raise InvalidAuth
 
     # Return info that you want to store in the config entry.
     return {"title": f"METAR-TAF ({airport_icao_code})"}
@@ -95,18 +69,29 @@ class MetarTafConfigFlow(ConfigFlow, domain=DOMAIN):
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Handle the initial step."""
+
         errors: dict[str, str] = {}
+
         if user_input is not None:
+            await self.async_set_unique_id(f"{32323}_{5545}")
+            self._abort_if_unique_id_configured()
+
             try:
                 info = await validate_input(self.hass, user_input)
+
             except CannotConnect:
                 errors["base"] = "cannot_connect"
             except InvalidAuth:
                 errors["base"] = "invalid_auth"
+            except AirportIcaoCodeInvalid:
+                errors["base"] = "airport_icao_code_invalid"
+            except ApiKeyInvalidFormat:
+                errors["base"] = "api_key_invalid_format"
             except Exception:  # pylint: disable=broad-except
                 _LOGGER.exception("Unexpected exception")
                 errors["base"] = "unknown"
             else:
+                # We reach this if we've passed all validation so now we need to create the device
                 return self.async_create_entry(title=info["title"], data=user_input)
 
         return self.async_show_form(
@@ -120,3 +105,11 @@ class CannotConnect(HomeAssistantError):
 
 class InvalidAuth(HomeAssistantError):
     """Error to indicate there is invalid auth."""
+
+
+class AirportIcaoCodeInvalid(HomeAssistantError):
+    """Error to indicate the airport ICAO code is invalid."""
+
+
+class ApiKeyInvalidFormat(HomeAssistantError):
+    """Error to indicate the API key is in the wrong format."""
