@@ -311,6 +311,7 @@ FLOWS = {
         "melnor",
         "met",
         "met_eireann",
+        "metar_taf",
         "meteo_france",
         "meteoclimatic",
         "metoffice",

@@ -823,6 +823,8 @@ build.json @home-assistant/supervisor
 /tests/components/met/ @danielhiversen
 /homeassistant/components/met_eireann/ @DylanGore
 /tests/components/met_eireann/ @DylanGore
+/homeassistant/components/metar_taf/ @gstevenson
+/tests/components/metar_taf/ @gstevenson
 /homeassistant/components/meteo_france/ @hacf-fr @oncleben31 @Quentame
 /tests/components/meteo_france/ @hacf-fr @oncleben31 @Quentame
 /homeassistant/components/meteoalarm/ @rolfberkenbosch

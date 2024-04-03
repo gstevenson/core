@@ -1,0 +1,13 @@
+{
+  "domain": "metar_taf",
+  "name": "METAR-TAF",
+  "codeowners": ["@gstevenson"],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://www.home-assistant.io/integrations/metar_taf",
+  "homekit": {},
+  "iot_class": "cloud_polling",
+  "requirements": [],
+  "ssdp": [],
+  "zeroconf": []
+}
